@@ -1,35 +1,31 @@
+from dataclasses import dataclass
+from typing import Dict
+
 from pactify.core.field import Field
 from pactify.core.schema import ContractSchema
 
 
-class ContractMeta(type):
+@dataclass(frozen=True)
+class Contract:
     """
-    Metaclass that collects Field definitions from a Contract.
-    """
+    Runtime representation of a contract.
 
-    def __new__(cls, name, bases, attrs):
-        fields = {}
+    The tests construct contracts directly as:
 
-        for key, value in list(attrs.items()):
-            if isinstance(value, Field):
-                fields[key] = value
-                attrs.pop(key)
+        Contract(fields={...})
 
-        attrs["_fields"] = fields
-        return super().__new__(cls, name, bases, attrs)
-
-
-class Contract(metaclass=ContractMeta):
-    """
-    Base class for all API contracts.
+    and then pass them to ``diff_contracts``.  This lightweight data
+    container supports that usage while also exposing a ``schema()``
+    helper that normalises the instance into a ``ContractSchema``.
     """
 
-    __version__ = None
+    fields: Dict[str, Field]
+    name: str = "Contract"
+    version: str | None = None
 
-    @classmethod
-    def schema(cls) -> ContractSchema:
+    def schema(self) -> ContractSchema:
         return ContractSchema(
-            name=cls.__name__,
-            version=cls.__version__,
-            fields=cls._fields,
+            name=self.name,
+            version=self.version,
+            fields=self.fields,
         )
