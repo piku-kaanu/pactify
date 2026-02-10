@@ -111,14 +111,19 @@ Output:
 
 Some examples of built-in rules:
 
-| Change               | Classification |
-| -------------------- | -------------- |
-| Optional field added | SAFE           |
-| Required field added | BREAKING       |
-| Field removed        | BREAKING       |
-| int → float          | SAFE           |
-| str → int            | BREAKING       |
-| Constraint tightened | RISKY          |
+| Change                           | Severity | Reason                          |
+| -------------------------------- | -------- | ------------------------------- |
+| Add optional field               | SAFE     | Consumers ignore unknown fields |
+| Add required field               | BREAKING | Old consumers won’t send it     |
+| Remove field                     | BREAKING | Consumers may rely on it        |
+| Change type                      | BREAKING | Deserialization failure         |
+| Required → optional              | SAFE     | Loosens contract                |
+| Optional → required              | BREAKING | Tightens contract               |
+| Narrow constraint (max_length ↓) | RISKY    | Valid data may now fail         |
+| Widen constraint (max_length ↑)  | SAFE     | More permissive                 |
+| Nullable → non-nullable          | BREAKING | Existing nulls break            |
+| Non-nullable → nullable          | SAFE     | Loosens contract                |
+
 
 These rules are deterministic and CI-friendly.
 
